@@ -1,0 +1,69 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 40 50% 98%;
+    --foreground: 150 30% 15%;
+    --card: 0 0% 100%;
+    --card-foreground: 150 30% 15%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 150 30% 15%;
+    --primary: 340 95% 74%;
+    --primary-foreground: 150 40% 12%;
+    --secondary: 145 35% 93%;
+    --secondary-foreground: 150 35% 20%;
+    --muted: 40 30% 95%;
+    --muted-foreground: 150 15% 40%;
+    --accent: 280 60% 96%;
+    --accent-foreground: 280 40% 30%;
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 40 25% 90%;
+    --input: 40 25% 90%;
+    --ring: 340 95% 74%;
+    --radius: 1rem;
+
+    --kling-blue: 204 70% 53%;
+    --kling-green: 145 63% 49%;
+    --kling-red: 6 78% 57%;
+    --kling-pink: 340 95% 74%;
+    --kling-yellow: 45 93% 47%;
+    --kling-gold: 43 74% 52%;
+    --kling-forest: 150 48% 22%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    background-image:
+      radial-gradient(circle at 10% 20%, hsl(var(--kling-pink) / 0.08) 0%, transparent 40%),
+      radial-gradient(circle at 90% 10%, hsl(var(--kling-blue) / 0.08) 0%, transparent 35%),
+      radial-gradient(circle at 80% 80%, hsl(var(--kling-yellow) / 0.06) 0%, transparent 40%),
+      radial-gradient(circle at 20% 90%, hsl(var(--kling-green) / 0.06) 0%, transparent 35%);
+    background-attachment: fixed;
+  }
+}
+
+@layer components {
+  .kling-gradient-text {
+    @apply bg-gradient-to-r from-kling-blue via-kling-pink to-kling-yellow bg-clip-text text-transparent;
+  }
+
+  .kling-card {
+    @apply rounded-2xl border border-white/60 bg-white/80 shadow-sm backdrop-blur-sm transition-all hover:shadow-md;
+  }
+
+  .kling-bead {
+    @apply absolute rounded-full opacity-60 blur-[0.5px];
+  }
+
+  .kling-section-title {
+    @apply font-display text-2xl font-bold text-kling-forest md:text-3xl;
+  }
+}
