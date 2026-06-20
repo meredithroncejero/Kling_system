@@ -4,6 +4,11 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import type { OrderStatus } from "@/types";
 
+type ActionResult = {
+  success?: boolean;
+  error?: string;
+};
+
 export async function getCustomerOrders() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -53,7 +58,10 @@ export async function getAllOrders(page: number = 1, limit: number = 10) {
   };
 }
 
-export async function updateOrderStatus(orderId: string, newStatus: OrderStatus) {
+export async function updateOrderStatus(
+  orderId: string,
+  newStatus: OrderStatus
+): Promise<ActionResult> {
   const supabase = await createClient();
   // Fetch current status
   const { data: current, error: fetchError } = await supabase
@@ -96,7 +104,7 @@ export async function updateOrderStatus(orderId: string, newStatus: OrderStatus)
   return { success: true };
 }
 
-export async function approvePayment(orderId: string) {
+export async function approvePayment(orderId: string): Promise<ActionResult> {
   const res = await updateOrderStatus(orderId, "Payment Verified");
   if (res?.error) return res;
   await deductInventory(orderId);
@@ -104,7 +112,7 @@ export async function approvePayment(orderId: string) {
   return { success: true };
 }
 
-export async function rejectPayment(orderId: string) {
+export async function rejectPayment(orderId: string): Promise<ActionResult> {
   return updateOrderStatus(orderId, "Rejected");
 } 
 

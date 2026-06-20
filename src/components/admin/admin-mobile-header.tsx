@@ -12,6 +12,7 @@ import {
   BarChart3,
   Settings,
   LogOut,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { signOut } from "@/actions/auth";
@@ -21,6 +22,7 @@ const adminLinks = [
   { href: "/admin/products", label: "Products", icon: Package },
   { href: "/admin/inventory", label: "Inventory", icon: Warehouse },
   { href: "/admin/orders", label: "Orders", icon: ShoppingCart },
+  { href: "/admin/custom-requests", label: "Custom Requests", icon: Sparkles },
   { href: "/admin/reports", label: "Reports", icon: BarChart3 },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];

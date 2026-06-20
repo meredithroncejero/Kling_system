@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { getProducts } from "@/actions/products";
 import { ProductCard } from "@/components/products/product-card";
+import { CustomOrderSection } from "@/components/products/custom-order-section";
 import { ProductFilters } from "@/components/products/product-filters";
 import { ProductGridSkeleton } from "@/components/products/product-grid-skeleton";
 import { Pagination } from "@/components/pagination";
@@ -26,6 +27,10 @@ async function ProductGrid({
   search?: string;
   page: number;
 }) {
+  if (category === "Custom") {
+    return <CustomOrderSection />;
+  }
+
   const { products, totalPages, currentPage } = await getProducts({
     category: (category as ProductCategory) ?? "all",
     search,

@@ -5,7 +5,8 @@
 INSERT INTO storage.buckets (id, name, public) VALUES
   ('product-images', 'product-images', true),
   ('payment-receipts', 'payment-receipts', false),
-  ('gcash-qr', 'gcash-qr', true)
+  ('gcash-qr', 'gcash-qr', true),
+  ('custom-request-references', 'custom-request-references', false)
 ON CONFLICT (id) DO NOTHING;
 
 -- Product images: public read, admin write
@@ -56,3 +57,18 @@ CREATE POLICY "Admin update gcash qr"
 CREATE POLICY "Admin delete gcash qr"
   ON storage.objects FOR DELETE
   USING (bucket_id = 'gcash-qr' AND is_admin());
+
+-- Custom request references: customers upload/read own, admins read all
+CREATE POLICY "Users upload custom request references"
+  ON storage.objects FOR INSERT
+  WITH CHECK (
+    bucket_id = 'custom-request-references'
+    AND auth.uid()::text = (storage.foldername(name))[1]
+  );
+
+CREATE POLICY "Users read own custom request references"
+  ON storage.objects FOR SELECT
+  USING (
+    bucket_id = 'custom-request-references'
+    AND (auth.uid()::text = (storage.foldername(name))[1] OR is_admin())
+  );

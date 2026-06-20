@@ -1,15 +1,31 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { sendVerificationEmail } from "@/lib/resend";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import type { ProductFormData } from "@/lib/validations";
 
 export async function signInWithEmail(email: string, password: string) {
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) return { error: error.message };
   return { success: true };
+}
+
+export async function signInWithGoogle() {
+  const supabase = await createClient();
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: `${appUrl}/auth/callback`,
+    },
+  });
+
+  if (error) return { error: error.message };
+  if (data.url) redirect(data.url);
+  return { error: "Unable to start Google sign in." };
 }
 
 export async function signUpWithEmail(
