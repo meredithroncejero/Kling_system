@@ -100,7 +100,13 @@ export function CheckoutForm({ cartItems, gcashQrUrl }: CheckoutFormProps) {
             </div>
             <div className="space-y-2">
               <Label htmlFor="shipping_address">Shipping Address</Label>
-              <Textarea id="shipping_address" rows={3} {...register("shipping_address")} />
+              <Textarea
+                id="shipping_address"
+                rows={3}
+                placeholder="For delivery meet‑up, add here the meetup landmarks and we coordinate the time through messenger chat."
+                {...register("shipping_address")}
+              />
+
               {errors.shipping_address && (
                 <p className="text-sm text-destructive">{errors.shipping_address.message}</p>
               )}

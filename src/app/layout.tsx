@@ -37,7 +37,16 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [user, cartCount] = await Promise.all([getCurrentUser(), getCartCount()]);
+  let user = null;
+  let cartCount = 0;
+  try {
+    const results = await Promise.all([getCurrentUser(), getCartCount()]);
+    user = results[0];
+    cartCount = results[1] ?? 0;
+  } catch (e) {
+    console.error('RootLayout fetch error:', e);
+    // fallback values already set
+  }
 
   return (
     <html lang="en">

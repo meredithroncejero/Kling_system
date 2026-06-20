@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { uploadGcashQr } from "@/actions/settings";
+import { uploadGcashQr, deleteGcashQr } from "@/actions/settings";
 
 interface SettingsFormProps {
   currentQrUrl: string;
@@ -60,6 +60,21 @@ export function SettingsForm({ currentQrUrl }: SettingsFormProps) {
         </div>
         <Button disabled={uploading}>
           {uploading ? "Uploading..." : "Save QR Code"}
+        </Button>
+        {/* Delete button */}
+        <Button
+          variant="destructive"
+          disabled={uploading}
+          onClick={async () => {
+            const result = await deleteGcashQr();
+            if (result.error) toast.error(result.error);
+            else {
+              setQrUrl("");
+              toast.success("GCash QR code deleted");
+            }
+          }}
+        >
+          Delete QR Code
         </Button>
       </CardContent>
     </Card>

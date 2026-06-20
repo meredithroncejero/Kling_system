@@ -46,6 +46,8 @@ export function LoginForm() {
     if (result?.error) toast.error(result.error);
   }
 
+  const isAdminRedirect = redirect.startsWith("/admin");
+
   return (
     <Card className="mx-auto w-full max-w-md border-white/60 bg-white/80 backdrop-blur-sm">
       <CardHeader className="text-center">
@@ -73,25 +75,29 @@ export function LoginForm() {
           </Button>
         </form>
 
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
-          </div>
-        </div>
+        {!isAdminRedirect && (
+          <>
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
+              </div>
+            </div>
 
-        <Button variant="outline" className="w-full" onClick={handleGoogleLogin}>
-          Continue with Google
-        </Button>
+            <Button variant="outline" className="w-full" onClick={handleGoogleLogin}>
+              Continue with Google
+            </Button>
 
-        <p className="text-center text-sm text-muted-foreground">
-          Don&apos;t have an account?{" "}
-          <Link href="/register" className="text-primary hover:underline">
-            Sign up
-          </Link>
-        </p>
+            <p className="text-center text-sm text-muted-foreground">
+              Don&apos;t have an account?{" "}
+              <Link href="/register" className="text-primary hover:underline">
+                Sign up
+              </Link>
+            </p>
+          </>
+        )}
       </CardContent>
     </Card>
   );

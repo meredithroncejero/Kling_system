@@ -42,6 +42,30 @@ export async function getProducts(filters: ProductFilters = {}) {
   };
 }
 
+export async function getFeaturedProducts(limit = 8) {
+  const supabase = await createClient();
+
+  const { data: withImages, error: imageError } = await supabase
+    .from("products")
+    .select("*")
+    .not("image_url", "is", null)
+    .neq("image_url", "")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (imageError) throw new Error(imageError.message);
+  if (withImages && withImages.length > 0) return withImages;
+
+  const { data, error } = await supabase
+    .from("products")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}
+
 export async function getProductById(id: string) {
   const supabase = await createClient();
   const { data, error } = await supabase

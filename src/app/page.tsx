@@ -6,6 +6,7 @@ import { ProductGridSkeleton } from "@/components/products/product-grid-skeleton
 import { Pagination } from "@/components/pagination";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { HeroSection } from "@/components/layout/hero-section";
+import { HeroCarouselSkeleton } from "@/components/layout/hero-carousel-skeleton";
 import type { ProductCategory } from "@/types";
 
 interface HomePageProps {
@@ -60,9 +61,11 @@ export default async function HomePage({ searchParams }: HomePageProps) {
 
   return (
     <div>
-      <HeroSection />
+      <Suspense fallback={<HeroCarouselSkeleton />}>
+        <HeroSection />
+      </Suspense>
 
-      <section className="container mx-auto px-4 py-12">
+      <section id="collection" className="container mx-auto px-4 py-12">
         <h2 className="kling-section-title">Our Collection</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           Browse bracelets, charms, necklaces, and keychains

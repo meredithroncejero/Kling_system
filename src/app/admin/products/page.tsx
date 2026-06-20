@@ -33,7 +33,7 @@ export default async function AdminProductsPage() {
               <div className="relative mb-3 aspect-square overflow-hidden rounded-md bg-muted">
                 {product.image_url ? (
                   <Image
-                    src={product.image_url}
+                    src={product.image_url.split(",")[0]}
                     alt={product.name}
                     fill
                     className="object-cover"

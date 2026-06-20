@@ -31,6 +31,7 @@ export const checkoutSchema = z.object({
     .min(10, "Please enter a valid contact number")
     .regex(/^[0-9+\-\s()]+$/, "Invalid phone number format"),
   shipping_address: z.string().min(10, "Please enter a complete shipping address"),
+  delivery_notes: z.string().optional(),
 });
 
 export const orderStatusSchema = z.object({

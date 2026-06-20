@@ -26,6 +26,9 @@ export function ProductDetailDialog({ product }: ProductDetailDialogProps) {
   const [loading, setLoading] = useState(false);
   const isSoldOut = product.stock === 0;
 
+  const imageUrls = product.image_url ? product.image_url.split(",").filter(Boolean) : [];
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+
   async function handleAddToCart() {
     setLoading(true);
     const result = await addToCart(product.id, quantity);
@@ -51,17 +54,43 @@ export function ProductDetailDialog({ product }: ProductDetailDialogProps) {
         </DialogHeader>
 
         <div className="grid gap-6 md:grid-cols-2">
-          <div className="relative aspect-square overflow-hidden rounded-lg bg-muted">
-            {product.image_url ? (
-              <Image
-                src={product.image_url}
-                alt={product.name}
-                fill
-                className="object-cover"
-              />
-            ) : (
-              <div className="flex h-full items-center justify-center">
-                <ShoppingCart className="h-16 w-16 opacity-20" />
+          <div className="space-y-3">
+            <div className="relative aspect-square overflow-hidden rounded-lg bg-muted border border-white/40">
+              {imageUrls.length > 0 ? (
+                <Image
+                  src={imageUrls[activeImageIndex]}
+                  alt={product.name}
+                  fill
+                  className="object-cover transition-all duration-300"
+                />
+              ) : (
+                <div className="flex h-full items-center justify-center">
+                  <ShoppingCart className="h-16 w-16 opacity-20" />
+                </div>
+              )}
+            </div>
+
+            {imageUrls.length > 1 && (
+              <div className="flex gap-2 overflow-x-auto py-1 scrollbar-thin">
+                {imageUrls.map((url, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => setActiveImageIndex(index)}
+                    className={`relative h-14 w-14 shrink-0 overflow-hidden rounded-md border-2 transition-all ${
+                      activeImageIndex === index
+                        ? "border-kling-pink ring-2 ring-kling-pink/20"
+                        : "border-muted opacity-60 hover:opacity-100"
+                    }`}
+                  >
+                    <Image
+                      src={url}
+                      alt={`${product.name} gallery ${index + 1}`}
+                      fill
+                      className="object-cover"
+                    />
+                  </button>
+                ))}
               </div>
             )}
           </div>

@@ -33,7 +33,7 @@ export function CartItemRow({ item }: CartItemRowProps) {
       <CardContent className="flex items-center gap-4 p-4">
         <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-md bg-muted">
           {product.image_url ? (
-            <Image src={product.image_url} alt={product.name} fill className="object-cover" />
+            <Image src={product.image_url.split(",")[0]} alt={product.name} fill className="object-cover" />
           ) : (
             <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
               No image

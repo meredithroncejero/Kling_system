@@ -123,21 +123,32 @@ export function AdminOrderRow({ order }: AdminOrderRowProps) {
             </>
           )}
 
-          <Select
-            value={order.status}
-            onValueChange={(value) => handleStatusChange(value as OrderStatus)}
-          >
-            <SelectTrigger className="h-8 w-36">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {ORDER_STATUSES.map((status) => (
-                <SelectItem key={status} value={status}>
-                  {status}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {/* Disable status selector for terminal statuses */}
+          {"Completed Cancelled Rejected".includes(order.status) ? (
+            <Badge className={ORDER_STATUS_COLORS[order.status]} variant="outline">
+              {order.status}
+            </Badge>
+          ) : (
+            <Select
+              value={order.status}
+              onValueChange={(value) => handleStatusChange(value as OrderStatus)}
+            >
+              <SelectTrigger className="h-8 w-36">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {ORDER_STATUSES.map((status) => (
+                  <SelectItem
+                    key={status}
+                    value={status}
+                    disabled={"Completed Cancelled Rejected".includes(status)}
+                  >
+                    {status}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
       </td>
     </tr>

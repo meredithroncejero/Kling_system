@@ -15,13 +15,14 @@ interface ProductCardProps {
 
 export function ProductCard({ product }: ProductCardProps) {
   const isSoldOut = product.stock === 0;
+  const firstImageUrl = product.image_url ? product.image_url.split(",")[0] : null;
 
   return (
     <Card className="kling-card group overflow-hidden">
       <div className="relative aspect-square overflow-hidden rounded-t-2xl bg-gradient-to-br from-kling-pink/10 via-white to-kling-blue/10">
-        {product.image_url ? (
+        {firstImageUrl ? (
           <Image
-            src={product.image_url}
+            src={firstImageUrl}
             alt={product.name}
             fill
             className="object-cover transition-transform group-hover:scale-105"

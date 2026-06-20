@@ -53,11 +53,41 @@ export async function getAllOrders(page: number = 1, limit: number = 10) {
   };
 }
 
-export async function updateOrderStatus(orderId: string, status: OrderStatus) {
+export async function updateOrderStatus(orderId: string, newStatus: OrderStatus) {
   const supabase = await createClient();
+  // Fetch current status
+  const { data: current, error: fetchError } = await supabase
+    .from("orders")
+    .select("status")
+    .eq("id", orderId)
+    .single();
+
+  if (fetchError) return { error: fetchError.message };
+
+  const statusOrder = [
+    "Pending Verification",
+    "Payment Verified",
+    "Processing",
+    "Shipped",
+    "Completed",
+    "Cancelled",
+    "Rejected",
+  ];
+
+  const currentIdx = statusOrder.indexOf(current.status as OrderStatus);
+  const newIdx = statusOrder.indexOf(newStatus);
+
+  // Disallow regression or changes after a terminal status
+  if (newIdx < currentIdx) {
+    return { error: "Cannot revert to an earlier status" };
+  }
+  if ("Completed Cancelled Rejected".includes(current.status)) {
+    return { error: "Cannot modify a terminal order status" };
+  }
+
   const { error } = await supabase
     .from("orders")
-    .update({ status })
+    .update({ status: newStatus })
     .eq("id", orderId);
 
   if (error) return { error: error.message };
@@ -67,11 +97,33 @@ export async function updateOrderStatus(orderId: string, status: OrderStatus) {
 }
 
 export async function approvePayment(orderId: string) {
-  return updateOrderStatus(orderId, "Payment Verified");
+  const res = await updateOrderStatus(orderId, "Payment Verified");
+  if (res?.error) return res;
+  await deductInventory(orderId);
+  revalidatePath("/admin/inventory");
+  return { success: true };
 }
 
 export async function rejectPayment(orderId: string) {
   return updateOrderStatus(orderId, "Rejected");
+} 
+
+// Deduct product quantities from inventory after payment verification
+export async function deductInventory(orderId: string) {
+  const supabase = await createClient();
+  const { data: order, error } = await supabase
+    .from("orders")
+    .select("order_items(quantity, product:products(id, stock))")
+    .eq("id", orderId)
+    .single();
+  if (error) throw new Error(error.message);
+  const updates = order.order_items.map((item: any) =>
+    supabase
+      .from("products")
+      .update({ stock: (item.product.stock ?? 0) - item.quantity })
+      .eq("id", item.product.id)
+  );
+  await Promise.all(updates);
 }
 
 export async function getDashboardStats() {

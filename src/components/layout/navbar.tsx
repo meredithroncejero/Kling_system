@@ -6,6 +6,7 @@ import { ShoppingBag, Menu, X, User, LogOut, LayoutDashboard } from "lucide-reac
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/layout/logo";
 import { signOut } from "@/actions/auth";
+import { usePathname } from "next/navigation";
 import type { Profile } from "@/types";
 import { cn } from "@/lib/utils";
 
@@ -16,11 +17,16 @@ interface NavbarProps {
 
 export function Navbar({ cartCount, user }: NavbarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const pathname = usePathname();
+
+  if (pathname.startsWith("/admin")) {
+    return null;
+  }
 
   const navLinks = [
     { href: "/", label: "Shop" },
     ...(user ? [{ href: "/dashboard", label: "My Orders" }] : []),
-    ...(user?.role === "admin" ? [{ href: "/admin", label: "Admin" }] : []),
+
   ];
 
   return (
