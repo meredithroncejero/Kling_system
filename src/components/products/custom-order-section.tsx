@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { PRODUCT_CATEGORIES } from "@/types";
+import { cn } from "@/lib/utils";
 
 const beadColors = [
   "bg-kling-blue",
@@ -38,12 +39,43 @@ export function CustomOrderSection() {
   const [category, setCategory] = useState("");
   const [referenceFile, setReferenceFile] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [errors, setErrors] = useState<{ fullName?: string; contactNumber?: string }>({});
   const formRef = useRef<HTMLFormElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
 
   function focusForm() {
     nameInputRef.current?.focus();
   }
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name } = e.target;
+    if (errors[name as keyof typeof errors]) {
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next[name as keyof typeof errors];
+        return next;
+      });
+    }
+  };
+
+  const handleContactChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let cleanValue = e.target.value.replace(/\D/g, "");
+    
+    // Automatically strip leading zero if they type 09...
+    if (cleanValue.startsWith("0")) {
+      cleanValue = cleanValue.substring(1);
+    }
+    
+    e.target.value = cleanValue;
+
+    if (errors.contactNumber) {
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next.contactNumber;
+        return next;
+      });
+    }
+  };
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -53,12 +85,45 @@ export function CustomOrderSection() {
       return;
     }
 
-    setSubmitting(true);
     const formData = new FormData(event.currentTarget);
+    const fullName = formData.get("fullName")?.toString().trim() ?? "";
+    const rawContact = formData.get("contactNumber")?.toString().trim() ?? "";
+
+    const newErrors: { fullName?: string; contactNumber?: string } = {};
+
+    if (/\d/.test(fullName)) {
+      newErrors.fullName = "Full name must not contain numbers.";
+    }
+
+    if (!/^9\d{9}$/.test(rawContact)) {
+      newErrors.contactNumber = "Contact number must be a valid 10-digit mobile number starting with 9.";
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      if (newErrors.fullName) {
+        nameInputRef.current?.focus();
+      } else if (newErrors.contactNumber) {
+        document.getElementById("custom-contact")?.focus();
+      }
+      toast.error("Please correct the errors in the form.");
+      return;
+    }
+
+    // Set the complete formatted contact number with +63 prefix for submission
+    formData.set("contactNumber", `+63${rawContact}`);
+
+    setErrors({});
+    setSubmitting(true);
     const result = await submitCustomRequest(formData);
     setSubmitting(false);
 
     if (result.error) {
+      if (result.error.toLowerCase().includes("name")) {
+        setErrors(prev => ({ ...prev, fullName: result.error }));
+      } else if (result.error.toLowerCase().includes("contact")) {
+        setErrors(prev => ({ ...prev, contactNumber: result.error }));
+      }
       toast.error(result.error);
       return;
     }
@@ -67,6 +132,7 @@ export function CustomOrderSection() {
     formRef.current?.reset();
     setCategory("");
     setReferenceFile("");
+    setErrors({});
   }
 
   return (
@@ -147,7 +213,12 @@ export function CustomOrderSection() {
               name="fullName"
               placeholder="Enter your full name"
               required
+              className={errors.fullName ? "border-rose-500 focus-visible:ring-rose-500" : ""}
+              onChange={handleInputChange}
             />
+            {errors.fullName && (
+              <p className="text-xs text-rose-500 font-medium mt-1 pl-3">{errors.fullName}</p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -230,12 +301,27 @@ export function CustomOrderSection() {
             <Label htmlFor="custom-contact" className="text-kling-forest">
               Contact Number <RequiredMark />
             </Label>
-            <Input
-              id="custom-contact"
-              name="contactNumber"
-              placeholder="Enter your contact number"
-              required
-            />
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-kling-forest/60 font-semibold select-none">
+                +63
+              </span>
+              <Input
+                id="custom-contact"
+                name="contactNumber"
+                placeholder=""
+                required
+                maxLength={10}
+                inputMode="numeric"
+                className={cn(
+                  "pl-12",
+                  errors.contactNumber ? "border-rose-500 focus-visible:ring-rose-500" : ""
+                )}
+                onChange={handleContactChange}
+              />
+            </div>
+            {errors.contactNumber && (
+              <p className="text-xs text-rose-500 font-medium mt-1 pl-3">{errors.contactNumber}</p>
+            )}
           </div>
 
           <div className="space-y-2">
