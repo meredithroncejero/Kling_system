@@ -82,6 +82,14 @@ export async function submitCustomRequest(formData: FormData): Promise<ActionRes
     return { error: "Please complete all required custom request fields." };
   }
 
+  if (/\d/.test(fullName)) {
+    return { error: "Full name must not contain numbers." };
+  }
+
+  if (!/^\+639\d{9}$/.test(contactNumber)) {
+    return { error: "Contact number must be a valid Philippine mobile number (e.g. +639123456789)." };
+  }
+
   if (!(file instanceof File) || file.size === 0) {
     return { error: "Please upload a reference design image." };
   }
@@ -118,8 +126,32 @@ export async function submitCustomRequest(formData: FormData): Promise<ActionRes
 
   revalidatePath("/");
   revalidatePath("/admin/custom-requests");
+  revalidatePath("/dashboard");
 
   return { success: true };
+}
+
+export async function getCustomerCustomRequests(): Promise<CustomRequest[]> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    throw new Error("Unauthorized");
+  }
+
+  const { data, error } = await supabase
+    .from("custom_requests")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return attachReferenceUrls((data ?? []) as CustomRequest[]);
 }
 
 export async function getCustomRequests(filters: CustomRequestFilters = {}) {
