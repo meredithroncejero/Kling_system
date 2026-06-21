@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useState } from "react";
-import { Search } from "lucide-react";
+import { Search, Sparkles } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { PRODUCT_CATEGORIES, type ProductCategory } from "@/types";
@@ -21,6 +21,8 @@ const categoryActive: Record<ProductCategory, string> = {
   Keychain: "bg-kling-yellow text-kling-forest border-kling-yellow",
   Necklace: "bg-kling-red text-white border-kling-red",
 };
+
+const customCategory = "Custom";
 
 export function ProductFilters() {
   const router = useRouter();
@@ -91,6 +93,19 @@ export function ProductFilters() {
             {category}
           </button>
         ))}
+        <button
+          type="button"
+          onClick={() => updateParams("category", customCategory)}
+          className={cn(
+            "inline-flex items-center gap-1.5 rounded-full border-2 px-4 py-1.5 text-sm font-semibold transition-all",
+            currentCategory === customCategory
+              ? "border-purple-400 bg-purple-200 text-kling-forest shadow-sm"
+              : "border-purple-300 bg-purple-100/70 text-kling-forest hover:bg-purple-100"
+          )}
+        >
+          <Sparkles className="h-3.5 w-3.5" />
+          Custom
+        </button>
       </div>
     </div>
   );

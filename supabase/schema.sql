@@ -7,6 +7,14 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- Custom types
 CREATE TYPE user_role AS ENUM ('customer', 'admin');
 CREATE TYPE product_category AS ENUM ('Bracelet', 'Charm', 'Keychain', 'Necklace');
+CREATE TYPE custom_request_status AS ENUM (
+  'New Request',
+  'Under Review',
+  'Negotiating',
+  'Approved',
+  'Rejected',
+  'Converted'
+);
 CREATE TYPE order_status AS ENUM (
   'Pending Verification',
   'Payment Verified',
@@ -57,7 +65,7 @@ CREATE TABLE orders (
   status order_status NOT NULL DEFAULT 'Pending Verification',
   payment_receipt_url TEXT,
   shipping_address TEXT NOT NULL,
-  delivery_notes TEXT NOT NULL DEFAULT ''
+  delivery_notes TEXT NOT NULL DEFAULT '',
   contact_number TEXT NOT NULL,
   full_name TEXT NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -80,6 +88,24 @@ CREATE TABLE app_settings (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- Custom order requests
+CREATE TABLE custom_requests (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  category product_category NOT NULL,
+  full_name TEXT NOT NULL,
+  contact_number TEXT NOT NULL,
+  landmark TEXT NOT NULL,
+  description TEXT NOT NULL,
+  reference_image_path TEXT,
+  status custom_request_status NOT NULL DEFAULT 'New Request',
+  negotiated_price DECIMAL(10, 2) CHECK (negotiated_price IS NULL OR negotiated_price >= 0),
+  admin_notes TEXT,
+  order_id UUID REFERENCES orders(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 -- Indexes for performance
 CREATE INDEX idx_products_category ON products(category);
 CREATE INDEX idx_products_name ON products(name);
@@ -88,6 +114,9 @@ CREATE INDEX idx_orders_user_id ON orders(user_id);
 CREATE INDEX idx_orders_status ON orders(status);
 CREATE INDEX idx_orders_created_at ON orders(created_at);
 CREATE INDEX idx_order_items_order_id ON order_items(order_id);
+CREATE INDEX idx_custom_requests_user_id ON custom_requests(user_id);
+CREATE INDEX idx_custom_requests_status ON custom_requests(status);
+CREATE INDEX idx_custom_requests_created_at ON custom_requests(created_at);
 
 -- Updated_at trigger for products
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -100,6 +129,11 @@ $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER products_updated_at
   BEFORE UPDATE ON products
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER custom_requests_updated_at
+  BEFORE UPDATE ON custom_requests
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at_column();
 
@@ -178,6 +212,7 @@ ALTER TABLE cart_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE order_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE app_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE custom_requests ENABLE ROW LEVEL SECURITY;
 
 -- Helper function to check admin role
 CREATE OR REPLACE FUNCTION is_admin()
@@ -288,11 +323,29 @@ CREATE POLICY "Admins can manage app settings"
   ON app_settings FOR ALL
   USING (is_admin());
 
+-- Custom request policies
+CREATE POLICY "Users can view own custom requests"
+  ON custom_requests FOR SELECT
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can create own custom requests"
+  ON custom_requests FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Admins can view all custom requests"
+  ON custom_requests FOR SELECT
+  USING (is_admin());
+
+CREATE POLICY "Admins can update custom requests"
+  ON custom_requests FOR UPDATE
+  USING (is_admin());
+
 -- Storage buckets (run in Supabase Dashboard or via API)
 -- INSERT INTO storage.buckets (id, name, public) VALUES
 --   ('product-images', 'product-images', true),
 --   ('payment-receipts', 'payment-receipts', false),
---   ('gcash-qr', 'gcash-qr', true);
+--   ('gcash-qr', 'gcash-qr', true),
+--   ('custom-request-references', 'custom-request-references', false);
 
 -- Storage policies
 -- CREATE POLICY "Public read product images"
